@@ -10,6 +10,7 @@
   const btnOpen = document.getElementById('btn-open');
   const btnSave = document.getElementById('btn-save');
   const btnDownload = document.getElementById('btn-download');
+  const btnPdf = document.getElementById('btn-pdf');
   const btnTogglePreview = document.getElementById('btn-toggle-preview');
   const fileInput = document.getElementById('file-input');
   const browserNotice = document.getElementById('browser-notice');
@@ -133,6 +134,79 @@
         if (e.name !== 'AbortError') console.error(e);
       }
     }
+  }
+
+  // --- PDF Export ---
+
+  function exportPdf() {
+    const content = marked.parse(editor.value);
+    const title = currentFilename.replace(/\.(md|markdown|txt|mdx)$/i, '');
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>${title}</title>
+<style>
+@font-face {
+  font-family: 'Euclid Circular A';
+  src: url('${location.href.replace(/[^/]*$/, '')}fonts/EuclidCircularA-Regular.otf') format('opentype');
+  font-weight: 400;
+}
+@font-face {
+  font-family: 'Euclid Circular A';
+  src: url('${location.href.replace(/[^/]*$/, '')}fonts/EuclidCircularA-Medium.otf') format('opentype');
+  font-weight: 500;
+}
+@font-face {
+  font-family: 'Euclid Circular A';
+  src: url('${location.href.replace(/[^/]*$/, '')}fonts/EuclidCircularA-Semibold.otf') format('opentype');
+  font-weight: 600;
+}
+@font-face {
+  font-family: 'Euclid Circular A';
+  src: url('${location.href.replace(/[^/]*$/, '')}fonts/EuclidCircularA-Bold.otf') format('opentype');
+  font-weight: 700;
+}
+@page {
+  size: A4;
+  margin: 25mm 20mm 25mm 20mm;
+}
+body {
+  font-family: 'Euclid Circular A', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 11pt;
+  line-height: 1.7;
+  color: #212529;
+  -webkit-font-smoothing: antialiased;
+  max-width: 100%;
+}
+h1 { font-size: 22pt; font-weight: 600; margin: 0.8em 0 0.4em; padding-bottom: 0.3em; border-bottom: 1px solid #dee2e6; letter-spacing: -0.02em; }
+h2 { font-size: 16pt; font-weight: 600; margin: 0.8em 0 0.3em; padding-bottom: 0.2em; border-bottom: 1px solid #f1f3f5; letter-spacing: -0.015em; }
+h3 { font-size: 13pt; font-weight: 600; margin: 0.7em 0 0.3em; }
+h4, h5, h6 { font-weight: 600; margin: 0.6em 0 0.3em; }
+p { margin: 0.5em 0; }
+strong { font-weight: 600; }
+a { color: #1971c2; text-decoration: none; }
+ul, ol { padding-left: 1.5em; margin: 0.4em 0; }
+li { margin: 0.2em 0; }
+blockquote { padding: 8px 16px; margin: 0.6em 0; border-left: 3px solid #228be6; background: #f0f7ff; border-radius: 0 4px 4px 0; }
+blockquote p { margin: 0.2em 0; }
+code { font-family: 'SF Mono', 'Menlo', 'Consolas', monospace; font-size: 0.9em; padding: 1px 5px; background: #f1f3f5; border: 1px solid #dee2e6; border-radius: 3px; }
+pre { padding: 14px; margin: 0.6em 0; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; overflow-x: auto; }
+pre code { padding: 0; background: none; border: none; font-size: 9pt; line-height: 1.6; }
+table { width: 100%; border-collapse: collapse; margin: 0.6em 0; font-size: 10pt; }
+th, td { padding: 7px 12px; text-align: left; border: 1px solid #dee2e6; }
+th { background: #f8f9fa; font-weight: 600; font-size: 9pt; text-transform: uppercase; letter-spacing: 0.03em; color: #495057; }
+hr { border: none; height: 1px; background: #dee2e6; margin: 1.5em 0; }
+img { max-width: 100%; }
+input[type="checkbox"] { margin-right: 6px; }
+</style>
+</head>
+<body>${content}</body>
+</html>`);
+    printWindow.document.close();
+    printWindow.onafterprint = () => printWindow.close();
+    setTimeout(() => printWindow.print(), 300);
   }
 
   function downloadFile() {
@@ -503,6 +577,9 @@
     } else if (mod && e.key === 'k') {
       e.preventDefault();
       formatActions.link();
+    } else if (mod && e.key === 'p') {
+      e.preventDefault();
+      exportPdf();
     }
   });
 
@@ -511,6 +588,7 @@
   btnOpen.addEventListener('click', openFile);
   btnSave.addEventListener('click', saveFile);
   btnDownload.addEventListener('click', downloadFile);
+  btnPdf.addEventListener('click', exportPdf);
   btnTogglePreview.addEventListener('click', togglePreview);
 
   dismissNotice?.addEventListener('click', () => {
