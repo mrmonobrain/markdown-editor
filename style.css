@@ -763,6 +763,75 @@ html, body {
   background: var(--text-secondary);
 }
 
+/* ── Footer ── */
+
+.app-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 16px;
+  background: var(--bg-elevated);
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.footer-left, .footer-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.footer-version {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-tertiary);
+  letter-spacing: 0.02em;
+}
+
+.app-footer a {
+  color: var(--text-tertiary);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+
+.app-footer a:hover {
+  color: var(--text-secondary);
+}
+
+/* ── Legal Modal ── */
+
+.legal-modal-content {
+  max-width: 640px;
+  max-height: 85vh;
+}
+
+.legal-modal-content .modal-body {
+  padding: 24px 32px;
+  overflow-y: auto;
+}
+
+.legal-modal-content .markdown-body {
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.legal-modal-content .markdown-body h2 {
+  font-size: 1.15em;
+  border-bottom: none;
+  margin: 1.2em 0 0.3em;
+}
+
+.legal-modal-content .markdown-body h3 {
+  font-size: 1em;
+  margin: 1em 0 0.3em;
+}
+
+.legal-modal-content .markdown-body p {
+  margin: 0.4em 0;
+}
+
 /* ── Preview Toggle Active State ── */
 
 .toolbar button.preview-active {
@@ -920,6 +989,20 @@ html, body {
     height: 32px;
     padding: 0 10px;
     font-size: 12px;
+  }
+
+  /* Footer */
+  .app-footer {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+
+  .footer-left, .footer-right {
+    gap: 8px;
+  }
+
+  .legal-modal-content .modal-body {
+    padding: 16px;
   }
 
   /* Browser notice */

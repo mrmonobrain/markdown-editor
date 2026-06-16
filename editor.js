@@ -618,6 +618,157 @@ input[type="checkbox"] { margin-right: 6px; }
     }
   });
 
+  // --- Legal pages ---
+
+  const legalModal = document.getElementById('legal-modal');
+  const legalTitle = document.getElementById('legal-modal-title');
+  const legalBody = document.getElementById('legal-modal-body');
+  const legalClose = document.getElementById('legal-modal-close');
+
+  const legalContent = {
+    impressum: {
+      title: 'Impressum',
+      body: `## Angaben gemäss Schweizer Recht
+
+**Betreiber**
+Fabio Aresu
+c/o Markenkern AG
+Bahnhofstrasse 7
+7000 Chur
+Schweiz
+
+**Kontakt**
+E-Mail: fabio.aresu@markenkern.ch
+Telefon: +41 81 322 98 88
+
+## Haftungsausschluss
+
+Der Autor übernimmt keinerlei Gewähr hinsichtlich der inhaltlichen Richtigkeit, Genauigkeit, Aktualität, Zuverlässigkeit und Vollständigkeit der Informationen.
+
+Haftungsansprüche gegen den Autor wegen Schäden materieller oder immaterieller Art, welche aus dem Zugriff oder der Nutzung bzw. Nichtnutzung der veröffentlichten Informationen, durch Missbrauch der Verbindung oder durch technische Störungen entstanden sind, werden ausgeschlossen.
+
+Der Autor behält es sich ausdrücklich vor, Teile der Seiten oder das gesamte Angebot ohne gesonderte Ankündigung zu verändern, zu ergänzen, zu löschen oder die Veröffentlichung zeitweise oder endgültig einzustellen.
+
+## Haftung für Links
+
+Verweise und Links auf Webseiten Dritter liegen ausserhalb unseres Verantwortungsbereichs. Es wird jegliche Verantwortung für solche Webseiten abgelehnt. Der Zugriff und die Nutzung solcher Webseiten erfolgen auf eigene Gefahr des Nutzers.
+
+## Urheberrechte
+
+Die Urheber- und alle anderen Rechte an Inhalten, Bildern, Fotos oder anderen Dateien auf der Website gehören ausschliesslich dem Betreiber oder den speziell genannten Rechtsinhabern. Für die Reproduktion jeglicher Elemente ist die schriftliche Zustimmung der Urheberrechtsträger im Voraus einzuholen.
+
+## Anwendbares Recht
+
+Es gilt Schweizer Recht. Gerichtsstand ist Chur, Schweiz.`,
+    },
+    datenschutz: {
+      title: 'Datenschutzerklärung',
+      body: `*Stand: Juni 2026*
+
+## Verantwortliche Stelle
+
+Fabio Aresu
+c/o Markenkern AG
+Bahnhofstrasse 7
+7000 Chur, Schweiz
+E-Mail: fabio.aresu@markenkern.ch
+
+## Grundsatz
+
+Der Schutz Ihrer Privatsphäre ist uns wichtig. Diese Datenschutzerklärung beschreibt, welche Daten beim Besuch dieser Website erhoben werden und wie wir damit umgehen.
+
+## Datensparsamkeit
+
+Diese Anwendung benötigt keine Registrierung und erhebt aktiv keine Namen, E-Mail-Adressen, Zahlungsdaten oder andere direkt personenbezogene Informationen. Es werden keine Analyse- oder Tracking-Tools eingesetzt.
+
+## Datenverarbeitung im Browser
+
+Sämtliche Inhalte, die Sie im Editor erstellen oder bearbeiten, werden ausschliesslich lokal in Ihrem Browser verarbeitet. Es findet keine Übermittlung Ihrer Dokumente an externe Server statt.
+
+## Server-Logs
+
+Der Hosting-Provider (Netlify Inc., USA) erfasst automatisch technisch notwendige Daten in sogenannten Server-Logs:
+
+- IP-Adresse (anonymisiert)
+- Datum und Uhrzeit des Zugriffs
+- Angeforderte Seite/Datei
+- Browser-Typ und -Version
+- Betriebssystem
+
+Diese Daten dienen ausschliesslich der Sicherstellung eines störungsfreien Betriebs und werden nicht mit anderen Datenquellen zusammengeführt.
+
+## Cookies und Local Storage
+
+Diese Anwendung verwendet keine Cookies. Technisch notwendige Daten (z.B. Nutzer-Einstellungen) können im Local Storage Ihres Browsers gespeichert werden. Diese Daten verlassen Ihren Browser nicht.
+
+## Externe Ressourcen
+
+Die Anwendung lädt die Bibliothek «marked.js» von einem Content Delivery Network (jsDelivr). Dabei kann der CDN-Betreiber technische Zugriffsdaten erfassen. Es werden keine personenbezogenen Daten übermittelt.
+
+## Ihre Rechte
+
+Sie haben jederzeit das Recht auf Auskunft, Berichtigung und Löschung Ihrer Daten. Da über die technischen Server-Logs hinaus keine personenbezogenen Daten gespeichert werden, ist der Umfang allfälliger Auskünfte entsprechend begrenzt.
+
+Bei Fragen wenden Sie sich an: fabio.aresu@markenkern.ch
+
+## Änderungen
+
+Wir behalten uns vor, diese Datenschutzerklärung jederzeit anzupassen. Die aktuelle Version ist auf dieser Website einsehbar.
+
+## Anwendbares Recht
+
+Es gilt Schweizer Recht (DSG). Gerichtsstand ist Chur, Schweiz.`,
+    },
+    changelog: {
+      title: 'Changelog',
+      body: `## v1.0.0 — 16. Juni 2026
+
+Erster Release des Markdown Editors.
+
+### Features
+- **Datei-Management:** Öffnen/Speichern via File System Access API (Chrome/Edge), Upload/Download-Fallback für andere Browser
+- **Split-View:** Editor und Live-Preview nebeneinander, umschaltbar
+- **Formatting-Toolbar:** Bold, Italic, Strikethrough, H1–H3, Listen (UL/OL/Checkliste), Blockquote, Code, Codeblock, Link, Bild, Horizontale Linie
+- **Visueller Tabellen-Editor:** Zeilen/Spalten hinzufügen/entfernen, Ausrichtung pro Spalte, Doppelklick zum Bearbeiten bestehender Tabellen
+- **PDF-Export:** Sauber formatiertes A4-Layout mit Euclid Circular A
+- **Keyboard Shortcuts:** Ctrl+O, Ctrl+S, Ctrl+B, Ctrl+I, Ctrl+K, Ctrl+P
+- **Synchronized Scroll** zwischen Editor und Preview
+- **Responsive Design:** Optimiertes Mobile-Layout mit scrollbarer Toolbar
+- **Unsaved-Changes-Warnung** beim Schliessen des Tabs`,
+    },
+  };
+
+  function openLegalModal(key) {
+    const content = legalContent[key];
+    if (!content) return;
+    legalTitle.textContent = content.title;
+    legalBody.innerHTML = marked.parse(content.body);
+    legalModal.classList.remove('hidden');
+  }
+
+  document.getElementById('link-impressum').addEventListener('click', (e) => {
+    e.preventDefault();
+    openLegalModal('impressum');
+  });
+
+  document.getElementById('link-datenschutz').addEventListener('click', (e) => {
+    e.preventDefault();
+    openLegalModal('datenschutz');
+  });
+
+  document.getElementById('link-changelog').addEventListener('click', (e) => {
+    e.preventDefault();
+    openLegalModal('changelog');
+  });
+
+  legalClose.addEventListener('click', () => {
+    legalModal.classList.add('hidden');
+  });
+
+  legalModal.querySelector('.modal-backdrop').addEventListener('click', () => {
+    legalModal.classList.add('hidden');
+  });
+
   // --- Init ---
 
   renderPreview();
