@@ -545,6 +545,137 @@ input[type="checkbox"] { margin-right: 6px; }
 
   editor.addEventListener('input', handleInput);
 
+  // --- Smart Paste (Word/HTML → Markdown) ---
+
+  function htmlToMarkdown(html) {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+
+    function getAlign(el) {
+      const style = el.getAttribute('style') || '';
+      const align = el.getAttribute('align') || '';
+      if (/text-align:\s*center/i.test(style) || align === 'center') return 'center';
+      if (/text-align:\s*right/i.test(style) || align === 'right') return 'right';
+      return 'left';
+    }
+
+    function processNode(node) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        return node.textContent.replace(/\r?\n/g, ' ');
+      }
+      if (node.nodeType !== Node.ELEMENT_NODE) return '';
+
+      const tag = node.tagName.toLowerCase();
+      const children = () => Array.from(node.childNodes).map(processNode).join('');
+      const inner = children().trim();
+
+      switch (tag) {
+        case 'h1': return `\n# ${inner}\n\n`;
+        case 'h2': return `\n## ${inner}\n\n`;
+        case 'h3': return `\n### ${inner}\n\n`;
+        case 'h4': return `\n#### ${inner}\n\n`;
+        case 'h5': return `\n##### ${inner}\n\n`;
+        case 'h6': return `\n###### ${inner}\n\n`;
+        case 'p': case 'div': return inner ? `\n${inner}\n\n` : '\n';
+        case 'br': return '\n';
+        case 'strong': case 'b': return inner ? `**${inner}**` : '';
+        case 'em': case 'i': return inner ? `*${inner}*` : '';
+        case 'u': return inner;
+        case 's': case 'strike': case 'del': return inner ? `~~${inner}~~` : '';
+        case 'a': {
+          const href = node.getAttribute('href') || '';
+          return href && inner ? `[${inner}](${href})` : inner;
+        }
+        case 'img': {
+          const src = node.getAttribute('src') || '';
+          const alt = node.getAttribute('alt') || 'Bild';
+          return src ? `![${alt}](${src})` : '';
+        }
+        case 'ul': {
+          const items = Array.from(node.querySelectorAll(':scope > li'));
+          return '\n' + items.map((li) => `- ${processNode(li).trim()}`).join('\n') + '\n\n';
+        }
+        case 'ol': {
+          const items = Array.from(node.querySelectorAll(':scope > li'));
+          return '\n' + items.map((li, i) => `${i + 1}. ${processNode(li).trim()}`).join('\n') + '\n\n';
+        }
+        case 'li': return children();
+        case 'blockquote': return `\n> ${inner.replace(/\n/g, '\n> ')}\n\n`;
+        case 'code': return `\`${inner}\``;
+        case 'pre': return `\n\`\`\`\n${node.textContent.trim()}\n\`\`\`\n\n`;
+        case 'hr': return '\n---\n\n';
+        case 'table': {
+          const rows = Array.from(node.querySelectorAll('tr'));
+          if (rows.length === 0) return '';
+          const matrix = rows.map((row) =>
+            Array.from(row.querySelectorAll('th, td')).map((cell) => processNode(cell).trim())
+          );
+          const isHeader = rows[0].querySelector('th') !== null;
+          const cols = Math.max(...matrix.map((r) => r.length));
+          matrix.forEach((r) => { while (r.length < cols) r.push(''); });
+          const aligns = isHeader
+            ? Array.from(rows[0].querySelectorAll('th, td')).map(getAlign)
+            : new Array(cols).fill('left');
+          while (aligns.length < cols) aligns.push('left');
+          const widths = [];
+          for (let c = 0; c < cols; c++) {
+            widths.push(Math.max(3, ...matrix.map((r) => (r[c] || '').length)));
+          }
+          const pad = (s, w) => s + ' '.repeat(Math.max(0, w - s.length));
+          const sepCell = (align, w) => {
+            if (align === 'center') return ':' + '-'.repeat(w - 2) + ':';
+            if (align === 'right') return '-'.repeat(w - 1) + ':';
+            return '-'.repeat(w);
+          };
+          const headerRow = isHeader ? 0 : -1;
+          let md = '';
+          if (isHeader) {
+            md += '| ' + matrix[0].map((c, i) => pad(c, widths[i])).join(' | ') + ' |\n';
+          } else {
+            md += '| ' + new Array(cols).fill('').map((_, i) => pad('', widths[i])).join(' | ') + ' |\n';
+          }
+          md += '| ' + aligns.map((a, i) => sepCell(a, widths[i])).join(' | ') + ' |\n';
+          const dataRows = isHeader ? matrix.slice(1) : matrix;
+          dataRows.forEach((row) => {
+            md += '| ' + row.map((c, i) => pad(c, widths[i])).join(' | ') + ' |\n';
+          });
+          return '\n' + md + '\n';
+        }
+        case 'tr': case 'td': case 'th': case 'thead': case 'tbody': case 'tfoot':
+          return children();
+        case 'span': {
+          const style = node.getAttribute('style') || '';
+          let result = children();
+          if (/font-weight:\s*(bold|[7-9]00)/i.test(style)) result = `**${result}**`;
+          if (/font-style:\s*italic/i.test(style)) result = `*${result}*`;
+          if (/text-decoration[^:]*:\s*line-through/i.test(style)) result = `~~${result}~~`;
+          return result;
+        }
+        default: return children();
+      }
+    }
+
+    let result = processNode(doc.body);
+    result = result.replace(/\n{3,}/g, '\n\n').trim();
+    return result;
+  }
+
+  function isRichContent(html) {
+    if (!html) return false;
+    return /<(p|h[1-6]|table|ul|ol|strong|em|b|i|div|span)\b/i.test(html);
+  }
+
+  editor.addEventListener('paste', (e) => {
+    const html = e.clipboardData.getData('text/html');
+    if (!isRichContent(html)) return;
+    e.preventDefault();
+    const md = htmlToMarkdown(html);
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+    editor.value = editor.value.slice(0, start) + md + editor.value.slice(end);
+    editor.selectionStart = editor.selectionEnd = start + md.length;
+    handleInput();
+  });
+
   // --- Tab key support ---
 
   editor.addEventListener('keydown', (e) => {
@@ -880,7 +1011,14 @@ Du kannst Markdown-Dateien (.md, .markdown, .txt) direkt in den Editor ziehen, u
     },
     changelog: {
       title: 'Changelog',
-      body: `## v1.1.0 — 16. Juni 2026
+      body: `## v1.2.0 — 16. Juni 2026
+
+### Neu
+- **Smart Paste:** Aus Word/Google Docs kopierte Inhalte werden automatisch in Markdown konvertiert (Überschriften, Fett/Kursiv, Listen, Tabellen, Links)
+
+---
+
+## v1.1.0 — 16. Juni 2026
 
 ### Neu
 - **Drag & Drop:** Markdown-Dateien direkt in den Editor ziehen zum Öffnen
