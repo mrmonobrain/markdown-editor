@@ -618,6 +618,54 @@ input[type="checkbox"] { margin-right: 6px; }
     }
   });
 
+  // --- Drag & Drop ---
+
+  const dropOverlay = document.getElementById('drop-overlay');
+  let dragCounter = 0;
+
+  function isMarkdownFile(file) {
+    const name = file.name.toLowerCase();
+    return /\.(md|markdown|mdx|txt)$/.test(name) || file.type === 'text/markdown' || file.type === 'text/plain';
+  }
+
+  document.addEventListener('dragenter', (e) => {
+    e.preventDefault();
+    dragCounter++;
+    if (dragCounter === 1) dropOverlay.classList.remove('hidden');
+  });
+
+  document.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    dragCounter--;
+    if (dragCounter === 0) dropOverlay.classList.add('hidden');
+  });
+
+  document.addEventListener('dragover', (e) => {
+    e.preventDefault();
+  });
+
+  document.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dragCounter = 0;
+    dropOverlay.classList.add('hidden');
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+    if (!isMarkdownFile(file)) {
+      alert('Bitte eine Markdown-Datei (.md, .markdown, .txt) ablegen.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      editor.value = reader.result;
+      savedContent = reader.result;
+      fileHandle = null;
+      setFilename(file.name);
+      setModified(false);
+      renderPreview();
+    };
+    reader.readAsText(file);
+  });
+
   // --- Legal pages ---
 
   const legalModal = document.getElementById('legal-modal');
@@ -719,9 +767,128 @@ Wir behalten uns vor, diese Datenschutzerklärung jederzeit anzupassen. Die aktu
 
 Es gilt Schweizer Recht (DSG). Gerichtsstand ist Chur, Schweiz.`,
     },
+    help: {
+      title: 'Markdown Hilfe',
+      body: `## Grundlagen
+
+| Formatierung | Markdown | Ergebnis |
+|---|---|---|
+| Fett | \`**Text**\` | **Text** |
+| Kursiv | \`*Text*\` | *Text* |
+| Durchgestrichen | \`~~Text~~\` | ~~Text~~ |
+| Code inline | \`\\\`Code\\\`\` | \`Code\` |
+| Link | \`[Text](url)\` | [Text](url) |
+| Bild | \`![Alt](url)\` | Bild-Einbettung |
+
+## Überschriften
+
+\`\`\`
+# Überschrift 1
+## Überschrift 2
+### Überschrift 3
+\`\`\`
+
+## Listen
+
+\`\`\`
+- Aufzählung
+- Weiterer Punkt
+
+1. Nummeriert
+2. Zweiter Punkt
+
+- [ ] Aufgabe offen
+- [x] Aufgabe erledigt
+\`\`\`
+
+## Querverweise innerhalb des Dokuments
+
+Jede Überschrift wird automatisch zu einem Anker. Du kannst darauf verweisen:
+
+\`\`\`
+## Mein Abschnitt
+
+Etwas Text hier...
+
+## Anderer Abschnitt
+
+Siehe [Mein Abschnitt](#mein-abschnitt) für Details.
+\`\`\`
+
+**Regeln für Anker-IDs:**
+- Alles wird kleingeschrieben
+- Leerzeichen werden zu Bindestrichen (\`-\`)
+- Sonderzeichen werden entfernt
+- Beispiel: \`## 3. Wichtige Punkte\` → \`#3-wichtige-punkte\`
+
+## Bilder
+
+Bilder werden in Markdown nur **verlinkt**, nicht eingebettet:
+
+\`\`\`
+![Beschreibung](https://example.com/bild.png)
+\`\`\`
+
+Die Bilder müssen extern gehostet sein (z.B. auf GitHub, Imgur oder einem eigenen Server). Der Editor speichert keine Bilddateien.
+
+## Tabellen
+
+\`\`\`
+| Spalte 1 | Spalte 2 | Spalte 3 |
+|----------|:--------:|---------:|
+| Links    | Mitte    | Rechts   |
+\`\`\`
+
+**Tipp:** Nutze den visuellen Tabellen-Editor über den Tabellen-Button in der Toolbar. Bestehende Tabellen kannst du per Doppelklick bearbeiten.
+
+## Code-Blöcke
+
+\`\`\`
+\\\`\\\`\\\`javascript
+const greeting = 'Hallo Welt';
+console.log(greeting);
+\\\`\\\`\\\`
+\`\`\`
+
+## Blockquote
+
+\`\`\`
+> Dies ist ein Zitat.
+> Es kann mehrzeilig sein.
+\`\`\`
+
+## Horizontale Linie
+
+\`\`\`
+---
+\`\`\`
+
+## Tastaturkürzel
+
+| Kürzel | Aktion |
+|--------|--------|
+| Ctrl+O | Datei öffnen |
+| Ctrl+S | Speichern |
+| Ctrl+B | Fett |
+| Ctrl+I | Kursiv |
+| Ctrl+K | Link einfügen |
+| Ctrl+P | PDF exportieren |
+
+## Drag & Drop
+
+Du kannst Markdown-Dateien (.md, .markdown, .txt) direkt in den Editor ziehen, um sie zu öffnen.`,
+    },
     changelog: {
       title: 'Changelog',
-      body: `## v1.0.0 — 16. Juni 2026
+      body: `## v1.1.0 — 16. Juni 2026
+
+### Neu
+- **Drag & Drop:** Markdown-Dateien direkt in den Editor ziehen zum Öffnen
+- **Hilfe-Seite:** Umfassende Markdown-Referenz mit Querverweisen, Bilder-Erklärung, Tastaturkürzeln und Tabellen-Tipps
+
+---
+
+## v1.0.0 — 16. Juni 2026
 
 Erster Release des Markdown Editors.
 
@@ -759,6 +926,11 @@ Erster Release des Markdown Editors.
   document.getElementById('link-changelog').addEventListener('click', (e) => {
     e.preventDefault();
     openLegalModal('changelog');
+  });
+
+  document.getElementById('link-help').addEventListener('click', (e) => {
+    e.preventDefault();
+    openLegalModal('help');
   });
 
   legalClose.addEventListener('click', () => {

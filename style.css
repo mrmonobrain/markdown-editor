@@ -763,6 +763,41 @@ html, body {
   background: var(--text-secondary);
 }
 
+/* ── Drop Overlay ── */
+
+.drop-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(34, 139, 230, 0.08);
+  border: 3px dashed var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  animation: drop-fade-in 0.15s ease;
+}
+
+@keyframes drop-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.drop-overlay-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.drop-overlay-content svg {
+  opacity: 0.8;
+}
+
 /* ── Footer ── */
 
 .app-footer {
